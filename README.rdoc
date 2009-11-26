@@ -27,9 +27,7 @@ gem install rcomet
 
 == LICENSE:
 
-RComet is freely distributable according to the terms of the
-GNU General Public License.
+RComet is freely distributable according to the terms of the GNU General Public License.
 
-This program is distributed without any warranty. See the file
-'COPYING' for details.
+This program is distributed without any warranty. See the file 'LICENCE' for details.
 

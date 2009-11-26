@@ -1,8 +1,0 @@
-.autotest
-History.txt
-Manifest.txt
-README.txt
-Rakefile
-bin/rcomet
-lib/rcomet.rb
-test/test_rcomet.rb
