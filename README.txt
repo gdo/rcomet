@@ -1,0 +1,35 @@
+= rcomet
+
+* FIX (url)
+
+== DESCRIPTION:
+
+RComet is an implementation of the Bayeux protocol in Ruby. 
+Bayeux Protocol : http://svn.cometd.org/trunk/bayeux/bayeux.html
+
+== FEATURES/PROBLEMS:
+
+RComet use webrick but it would use eventmachine
+
+== SYNOPSIS:
+
+  FIX (code sample of usage)
+
+== REQUIREMENTS:
+
+* json
+* Capcode for example
+* Dojo Framework for example
+
+== INSTALL:
+
+gem install rcomet
+
+== LICENSE:
+
+RComet is freely distributable according to the terms of the
+GNU General Public License.
+
+This program is distributed without any warranty. See the file
+'COPYING' for details.
+

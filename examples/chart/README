@@ -1,0 +1,9 @@
+Chart -- A chart update via comet
+==============================
+
+-- Running the demo
+
+ * ruby chart.rb in this directory
+ * Open some browsers at http://localhost:3000
+
+If you have the exception RCometAddrInUse change the port 8990 in chart.rb and in chart.html
