@@ -1,14 +1,12 @@
 require 'rubygems'
 require 'capcode'
 require 'capcode/render/static'
-require 'capcode/render/json'
-require '../../lib/rcomet'
+$:.unshift( "../../lib" )
+require 'rcomet'
 
-
-@comet_thread=Thread.new do
-  server=RComet::Server.new('localhost',8990)
-  graph_channel=RComet::Channel.new('/graph',[1,1,2,2,3,3,4,4])
-  server.add_channel(graph_channel)
+@comet_thread = Thread.new do
+  server = RComet::Server.new( :server => 'localhost', :port => 8990 )
+  graph_channel = server.add_channel( '/graph', [1,1,2,2,3,3,4,4] )
   server.start
   
   while true
@@ -18,9 +16,14 @@ require '../../lib/rcomet'
 end
 
 module Capcode
-  
   set :static, "/static"
   set :verbose, true 
+  
+#  class Index < Route '/'
+#    def get
+#      redirect '/static/chart.html'
+#    end
+#  end
 end
 
 def notify_change
