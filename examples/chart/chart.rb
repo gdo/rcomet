@@ -19,14 +19,11 @@ module Capcode
   set :static, "/static"
   set :verbose, true 
   
-#  class Index < Route '/'
-#    def get
-#      redirect '/static/chart.html'
-#    end
-#  end
-end
-
-def notify_change
+  class Index < Route '/'
+    def get
+      redirect '/static/chart.html'
+    end
+  end
 end
 
 Capcode.run( )
