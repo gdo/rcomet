@@ -1,5 +1,5 @@
 module RComet
-  class User
+  class User #:nodoc:
     attr_reader :id
     attr_accessor :status
     def initialize(server)

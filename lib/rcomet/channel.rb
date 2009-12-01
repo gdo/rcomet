@@ -2,31 +2,50 @@ module RComet
   class Channel
     attr_reader :path, :data
     attr_accessor :server
-    def initialize(path,data=nil)
+    
+    # Create a new channel
+    def initialize( path, data = nil )
       @path = path
       @users = Hash.new
       @data = data
     end
 
-    #It"s a deliver event messages
-    def update_data(data)     
-      @data=data
+    # Update data
+    #
+    #   channel.update_data( [1,2,3,4] )
+    #
+    # or
+    #
+    #   channel.update_data( data = nil ) { |data| ... }
+    #
+    # or
+    #
+    #   channel.data = ... # YES, data not update_data !
+    def update_data( data = nil, &block )
+      if block_given?
+        @data = yield( data )
+      else
+        @data = data
+      end
 
-      @users.each do |id,user|
-        response={
-                    'channel' => @path,
-                    'data' => @data,
-                    'clientId' => id
-                  }
-        user.send_data(response)
+      @users.each do |id, user|
+        response = {
+          'channel' => @path,
+          'data' => @data,
+          'clientId' => id
+        }
+        user.send_data( response )
       end
     end
+    def data=( data ) #:nodoc:
+      update_data( data )
+    end
     
-    def add_user(user)
-      @users[user.id]=user
+    def add_user( user ) #:nodoc:
+      @users[user.id] = user
     end
 
-    def delete_user(user)
+    def delete_user( user ) #:nodoc:
       @users.delete(user.id)
     end
   end

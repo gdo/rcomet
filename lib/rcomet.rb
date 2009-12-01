@@ -8,6 +8,7 @@ require 'json'
 require 'webrick/httprequest'
 require 'webrick/httpresponse'
 
+require 'rcomet/core_ext'
 require 'rcomet/constants'
 require 'rcomet/error'
 require 'rcomet/channel'

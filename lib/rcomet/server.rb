@@ -74,7 +74,7 @@ module RComet
       end
     end
     
-    def send_response(response,http_request,socket,close=true)
+    def send_response(response,http_request,socket,close=true) #:nodoc:
       http_response = WEBrick::HTTPResponse.new(:Logger=>@logger,:HTTPVersion=>'1.1')
       http_response.request_method = http_request.request_method
       http_response.request_uri = http_request.request_uri
@@ -100,19 +100,22 @@ module RComet
     private
     
     # Request process dispatcher
-    def process( http_request, socket )
-      messages = JSON.parse(http_request.query['message'])
+    def process( http_request, socket ) #:nodoc:
+      messages = JSON.parse( http_request.query['message'] )
       
-      if messages[0]['channel']=='/meta/handshake'
-        process_handshake(messages,http_request,socket)
-      elsif messages[0]['channel']=='/meta/connect'
-        process_connect(messages,http_request,socket)
-      elsif messages[0]['channel']=='/meta/disconnect'
-        process_disconnect(messages,http_request,socket)
-      elsif messages[0]['channel']=='/meta/subscribe'
-        process_subscribe(messages,http_request,socket)
-      else
-        raise RCometInvalidChannel "Channel #{messages[0]['channel']} invalid!"
+      case messages[0]['channel'] 
+        when RComet::Channel::HANDSHAKE
+          process_handshake( messages, http_request, socket )
+        when RComet::Channel::CONNECT
+          process_connect( messages, http_request, socket )
+        when RComet::Channel::DISCONNECT
+          process_disconnect( messages, http_request, socket )
+        when RComet::Channel::SUBSCRIBE
+          process_subscribe( messages, http_request, socket )
+        when RComet::Channel::UNSUBSCRIBE
+          process_unsubscribe( messages, http_request, socket )
+        else
+          raise RCometInvalidChannel "Channel #{messages[0]['channel']} invalid!"
       end
     rescue Object => e
       STDERR.puts e.message
@@ -120,139 +123,180 @@ module RComet
       exit(1)
     end
 
-    def process_handshake(messages,http_request,socket)
-      #Pour l'identification
-      message=messages[0] #on doit ignorer les autres
+    def process_handshake(messages,http_request,socket) #:nodoc:
+      message = messages[0] #on doit ignorer les autres
       
       begin
-        user=User.new(self)
+        user = User.new( self )
       end while @users.has_key?(user.id)
-      @users[user.id]=user
+      @users[user.id] = user
 
-      response=[{
-                  'channel'=> '/meta/handshake',
-                  'id' => message['id'],
-                  'version'=> '1.0',
-                  'minimumVersion'=> '1.0',
-                  'supportedConnectionTypes'=> ['long-polling','callback-polling'],
-                  'clientId'=> user.id,
-                  'successful'=> true
-                }]
+      response = {
+        'channel'                   => RComet::Channel::HANDSHAKE,
+        'id'                        => message['id'],
+        'version'                   => '1.0',
+        'minimumVersion'            => '1.0',
+        'supportedConnectionTypes'  => ['long-polling','callback-polling'],
+        'clientId'                  => user.id,
+        'successful'                => true
+      }
 
-      send_response(response,http_request,socket)
+      send_response( [response], http_request, socket )
     end
 
-    def process_connect(messages,http_request,socket)
-      message=messages[0] #on doit ignorer les autres
-      time=Time.new
+    def process_connect(messages,http_request,socket) #:nodoc:
+      message = messages[0] #on doit ignorer les autres
       
-      ##Le connect sert lorsque il y a un login et un password pour ce connecter à un utilisateur en particulier
+      # Initialize response
+      response = { 
+        'channel' => RComet::Channel::CONNECT,
+        'clientId' => message['clientId']
+      }
+      response << { 'id' => message['id'] } if message.has_key?('id')
 
-      user=@users[message['clientId']]
+      # Get user for clientId
+      user = @users[message['clientId']]
       if user
-        user.status=:connected
-        response=[{ 
-                    'channel'=>'/meta/connect',
-                    'id' => message['id'],
-                    'clientId'=>message['clientId'],
-                    'successful'=>true,
-                    'timestamp'=>"#{time.hour}:#{time.min}:#{time.sec} #{time.year}"
-                  }]
+        # Ok, connect user
+        user.status = :connected
+        time = Time.new
+        
+        response << {
+          'successful'  => true,
+          'timestamp'   =>"#{time.hour}:#{time.min}:#{time.sec} #{time.year}"
+        }
+        
         if user.have_channel?
-          #je passe dans le mode event des qu'il y a publication d'une donnée sur un des channels de l'utilisateur alors on repond
+          #je passe dans le mode event des qu'il y a publication d'une donnée sur un des channels 
+          # de l'utilisateur alors on repond
           ##TODO faire un timeout de 30s
-          return user.set_network_info(response,http_request,socket)
+          return user.set_network_info( [response], http_request, socket )
         else
-          return send_response(response,http_request,socket)
+          return send_response( [response], http_request, socket )
         end
       else
-        response=[{ 
-                    'channel'=>'/meta/connect',
-                    'id' => message['id'],
-                    'clientId'=>message['clientId'],
-                    'successful'=>false,
-                    'error'=> "402:#{message['clientId']}:Unknown Client ID"
-                  }]
-        return send_response(response,http_request,socket)
+        # User does not exist!
+        response << {
+          'successful'  => false,
+          'error'       => "402:#{message['clientId']}:Unknown Client ID"
+        }
+        
+        return send_response( [response], http_request, socket )
       end
-      raise "Je ne dois jamais arriver là contrairement aux autres ordres"
     end
 
-    def process_disconnect(messages,http_request,socket)
-      message=messages[0] #on doit ignorer les autres
-      time=Time.new
+    def process_disconnect(messages,http_request,socket) #:nodoc:
+      message = messages[0] #on doit ignorer les autres
 
-      user=@users[message['clientId']]
+      # Initialize response message
+      response = {
+        'channel'     => RComet::Channel::DISCONNECT,
+        'clientId'    => message['clientId']
+      }
+      response << { 'id' => message['id'] } if message.has_key?('id')
+      
+      # Get user for clientId
+      user = @users[message['clientId']]
       if user
-        response=[{ 
-                    'channel'=>'/meta/disconnect',
-                    'id' => message['id'],
-                    'clientId'=>message['clientId'],
-                    'successful'=>true
-                  }]
+        # Ok, disconnect user
         user.disconnect
-        @users.delete(message['clientId'])
+        @users.delete( message['clientId'] )
+        
+        # Complete reponse
+        response << {
+          'successful'  => true
+        }
       else
-        response=[{
-                    'channel'=> '/meta/disconnect',
-                    'id' => message['id'],
-                    'clientId'=>message['clientId'],
-                    'successful'=> false,
-                    'error'=> "402:#{message['clientId']}:Unknown Client ID"
-                  }]
+        # User does nit exist!
+        response << {
+          'successful'  => false,
+          'error'       => "402:#{message['clientId']}:Unknown Client ID"
+        }
       end
-      send_response(response,http_request,socket)
+      send_response( [response], http_request, socket )
     end
 
-    def process_subscribe(messages,http_request,socket)
-      message=messages[0] #on doit ignorer les autres
-      time=Time.new
+    def process_subscribe(messages,http_request,socket) #:nodoc:
+      message = messages[0] #on doit ignorer les autres
 
-      user=@users[message['clientId']]
+      response = {
+        'channel'     => RComet::Channel::SUBSCRIBE,
+        'clientId'    => message['clientId']
+      }
+      response << { 'id' => message['id'] } if message.has_key?('id')
+      
+      # Get user for clientId
+      user = @users[message['clientId']]
       if user
-        channel=@channels[message['subscription']]
+        # Get channel
+        channel = @channels[message['subscription']]
         if channel
+          user.subscribe( channel )
+          response << {
+            'successful'    => true,
+            'subscription'  => message['subscription']
+          }
           
-          user.subscribe(channel)
-          
-          response=[{ 
-                      'channel'=>'/meta/subscribe',
-                      'id' => message['id'],
-                      'clientId'=>message['clientId'],
-                      'successful'=>true,
-                      'subscription'=>message['subscription']
-                    }]
           if channel.data
             response << { 
-              'channel'=>message['subscription'],
-              'id' => (message['id'].to_i+1).to_s,
-              'data' => channel.data,
-              'clientId'=>message['clientId'],
+              'channel'   => message['subscription'],
+              'id'        => (message['id'].to_i+1).to_s,
+              'data'      => channel.data
             }
           end
         else
           #Channel doesn't exist
-          response=[{
-                      'channel'=> '/meta/subscribe',
-                      'id' => message['id'],
-                      'clientId'=>message['clientId'],
-                      'successful'=> false,
-                      'subscription'=> message['subscription'],
-                      'error'=> "404:#{message['subscription']}:Unknown Channel"
-                    }]
+          response << {
+            'successful'    => false,
+            'subscription'  => message['subscription'],
+            'error'         => "404:#{message['subscription']}:Unknown Channel"
+          }
         end
       else
-        response=[{
-                    'channel'=> '/meta/disconnect',
-                    'id' => message['id'],
-                    'clientId'=>message['clientId'],
-                    'successful'=> false,
-                    'error'=> "402:#{message['clientId']}:Unknown Client ID"
-                  }]
+        response << {
+          'successful'  => false,
+          'error'       => "402:#{message['clientId']}:Unknown Client ID"
+        }
       end
-      send_response(response,http_request,socket)
+      send_response( [response], http_request, socket )
     end
+    
+    def process_unsubscribe( messages, http_request, socket )
+      message = messages[0] #on doit ignorer les autres
 
+      # Initialize response
+      response = {
+        'channel'     => RComet::Channel::UNSUBSCRIBE,
+        'clientId'    => message['clientId']
+      }
+      response << { 'id' => message['id'] } if message.has_key?('id')
 
+      # Get user for clientId
+      user = @users[message['clientId']]
+      if user
+        # Get channel
+        channel = @channels[message['subscription']]
+        if channel
+          user.unsubscribe( channel )
+          response << {
+            'successful'    => true,
+            'subscription'  => message['subscription']
+          }
+        else
+          #Channel doesn't exist
+          response << {
+            'successful'    => false,
+            'subscription'  => message['subscription'],
+            'error'         => "404:#{message['subscription']}:Unknown Channel"
+          }
+        end
+      else
+        response << {
+          'successful'  => false,
+          'error'       => "402:#{message['clientId']}:Unknown Client ID"
+        }
+      end
+      send_response( [response], http_request, socket )
+    end
   end
 end

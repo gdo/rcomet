@@ -10,7 +10,7 @@ require 'rcomet'
   server.start
   
   while true
-    graph_channel.update_data([rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10)])
+    graph_channel.data = [rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10)]
     sleep(5)
   end
 end
