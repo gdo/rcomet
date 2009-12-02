@@ -51,12 +51,16 @@ module RComet
       
       return channel
     end
-
+    
     # Return the channel for the given path
-    def get_channel( path )
-      @channels[path]
+    def get_channel( channel_or_path )
+      if( channel_or_path.class == RComet::Channel )
+        return @channels[channel_or_path.path]
+      else
+        return @channels[channel_or_path]
+      end
     end
-
+    
     # Start the RComet server
     def start
       @tcp_server_thread = Thread.new do
@@ -90,7 +94,7 @@ module RComet
         raise "TODO"
       end
 
-      puts "@@@ Send response #{http_response.body}"
+      # puts "@@@ Send response #{http_response.body}"
       http_response['Size']=http_response.body.size
       http_response.send_response(socket)     
       socket.flush
@@ -102,7 +106,7 @@ module RComet
     # Request process dispatcher
     def process( http_request, socket ) #:nodoc:
       messages = JSON.parse( http_request.query['message'] )
-      
+
       case messages[0]['channel'] 
         when RComet::Channel::HANDSHAKE
           process_handshake( messages, http_request, socket )
@@ -115,7 +119,7 @@ module RComet
         when RComet::Channel::UNSUBSCRIBE
           process_unsubscribe( messages, http_request, socket )
         else
-          raise RCometInvalidChannel "Channel #{messages[0]['channel']} invalid!"
+          process_channel( messages, http_request, socket )
       end
     rescue Object => e
       STDERR.puts e.message
@@ -297,6 +301,37 @@ module RComet
         }
       end
       send_response( [response], http_request, socket )
+    end
+
+    def process_channel( messages, http_request, socket )
+      message = messages[0] #on doit ignorer les autres
+      
+      # Initialize response
+      response = { 
+        'channel' => message['channel']
+      }
+      response << { 'id' => message['id'] } if message.has_key?('id')
+
+      channel = get_channel(message['channel'])      
+      if channel.nil?
+        response << {
+          'successful'  => false,
+          'error'       => "404:#{message['channel']}:Unknown Channel"
+        }
+      else
+        response << {
+          'successful'  => true
+        }
+      end
+      send_response( [response], http_request, socket )
+      
+      unless channel.nil?
+        if channel.handler.nil?
+          channel.data = message['data']
+        else
+          channel.handler.call( message['data'] )
+        end
+      end
     end
   end
 end

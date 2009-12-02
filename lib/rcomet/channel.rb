@@ -1,6 +1,6 @@
 module RComet
   class Channel
-    attr_reader :path, :data
+    attr_reader :path, :data, :handler
     attr_accessor :server
     
     # Create a new channel
@@ -8,6 +8,7 @@ module RComet
       @path = path
       @users = Hash.new
       @data = data
+      @handler = nil
     end
 
     # Update data
@@ -39,6 +40,10 @@ module RComet
     end
     def data=( data ) #:nodoc:
       update_data( data )
+    end
+    
+    def callback( &b )
+      @handler = b
     end
     
     def add_user( user ) #:nodoc:

@@ -57,6 +57,9 @@
       alert('Error when retrieving data from the server!'+data);
       }
 
+			function publish() {
+				comet.publish('/graph', [10, 10, 0, 0, 10, 10, 0, 0]);
+			}
     </script>
 
   </head>
@@ -66,5 +69,7 @@
 
     <div id="simplechart" style="width: 250px; height: 150px;"></div>
 
+
+		<a href="javascript:publish();">publish</a>
   </body>
 </html>
