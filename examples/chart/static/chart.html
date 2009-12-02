@@ -30,7 +30,7 @@
         chart1.render();
       });
 
-      dojox.cometd.init("http://localhost:8990/comet");
+      dojox.cometd.init("http://localhost:8990");
       var sample = {
         _init : function() {
            dojox.cometd.subscribe("/graph", sample, "publishHandler");

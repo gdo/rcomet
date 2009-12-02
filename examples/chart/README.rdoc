@@ -15,4 +15,4 @@
   ruby chart.rb
 * Open some browsers at http://localhost:3000
 
-If you have the exception RCometAddrInUse change the port 8990 in chart.rb and in chart.html
+If you have the exception RCometAddrInUse change the port 8990 in chart-cometd.rb and in chart.html

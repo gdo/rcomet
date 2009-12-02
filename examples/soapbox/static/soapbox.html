@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>RComet demo: chat client</title>
+		<link rel="stylesheet" href="/static/style.css" type="text/css" media="screen">
+    <script language="JavaScript" type="text/javascript" src="/static/dojo/dojo/dojo.js" charset="utf-8" djConfig="parseOnLoad: true"></script>
+
+    <script language="JavaScript" type="text/javascript">
+      dojo.require("dojox.cometd");
+			
+      var comet = dojox.cometd;
+			comet.init("http://localhost:8990");
+			
+			var message = {
+				publish : function(msg) {
+					current = dojo.byId("stream").innerHTML 
+					dojo.byId("stream").innerHTML = "<li><b>"+msg.data.username+"</b>: "+msg.data.message+"</li>"+current;
+				}
+			}
+			
+			var username = null;
+			function login( ) {
+				username = dojo.byId("username").value;
+				comet.publish( '/login', username );
+				
+				return( false );
+			}
+			
+			function follow() {
+				followee = dojo.byId("followee").value;
+				comet.subscribe( '/from/'+followee, message, "publish" );
+				
+				return( false );
+			}
+			
+			function send() {
+				message = dojo.byId("message").value;
+				comet.publish( '/from/'+username, { "username":username, "message":message } );
+			}
+    </script>
+
+  </head>
+  <body>
+		<div class="container">
+
+		  <h1><em>Soapbox</em> | a Twitter-style chat app</h1>
+
+		  <form id="enterUsername" onSubmit="return login();">
+		    <label for="username">Pick a username</label>
+		    <input type="text" name="username" id="username">
+		    <input type="submit" value="Go">
+		  </form>
+
+		  <div id="app">
+		    <form id="addFollowee" onSubmit="return follow();">
+		      <label for="followee">Follow</label>
+		      <input type="text" name="followee" id="followee">
+		      <input type="submit" value="Go">
+		    </form>
+
+		    <form id="postMessage">
+		      <label for="message">Post a message</label><br>
+		      <textarea name="message" id="message" rows="3" cols="40"></textarea>
+		      <input type="button" value="Go" onClick="javascript:send();">
+		    </form>
+
+		    <ul id="stream">
+		    </ul>
+		  </div>
+		</div>
+  </body>
+</html>
