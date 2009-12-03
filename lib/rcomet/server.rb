@@ -1,3 +1,7 @@
+require 'webrick/httprequest'
+require 'webrick/httpresponse'
+require 'logger'
+
 module RComet
   class Server
     # Create a news server
@@ -10,7 +14,7 @@ module RComet
       opts = {
         :server => "0.0.0.0",
         :port => 8990,
-        :logger => STDOUT
+        :logger => Logger.new(STDOUT)
       }.merge( options )
       
       @users    = Hash.new
@@ -78,7 +82,7 @@ module RComet
       end
     end
     
-    def send_response(response,http_request,socket,close=true) #:nodoc:
+    def send_response( response, http_request, socket, close = true ) #:nodoc:
       http_response = WEBrick::HTTPResponse.new(:Logger=>@logger,:HTTPVersion=>'1.1')
       http_response.request_method = http_request.request_method
       http_response.request_uri = http_request.request_uri

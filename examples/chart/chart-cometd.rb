@@ -1,7 +1,7 @@
 $:.unshift( "../../lib" )
 require 'rcomet'
 
-server = RComet::Server.new( :server => '0.0.0.0', :port => 8990 )
+server = RComet::Server.new( :host => '0.0.0.0', :port => 8990 )
 graph_channel = server.add_channel( '/graph', [1,1,2,2,3,3,4,4] )
 graph_channel.callback do |data|
   puts "someone send "

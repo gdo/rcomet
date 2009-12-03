@@ -7,4 +7,10 @@ module RComet
   
   class RCometInvalidChannel < Exception
   end
+  
+  class RCometNotImplemented < Exception
+  end
+
+  class RCometInvalidServer < Exception
+  end
 end

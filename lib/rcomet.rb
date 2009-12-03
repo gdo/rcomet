@@ -5,8 +5,6 @@
 
 require 'rubygems'
 require 'json'
-require 'webrick/httprequest'
-require 'webrick/httpresponse'
 
 require 'rcomet/core_ext'
 require 'rcomet/constants'
