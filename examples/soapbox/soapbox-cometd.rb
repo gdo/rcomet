@@ -1,13 +1,13 @@
 $:.unshift( "../../lib" )
 require 'rcomet'
 
-server = RComet::Server.new( :server => 'localhost', :port => 8990 )
+server = RComet::Server.new( :server => '0.0.0.0', :port => 8990 )
 login = server.add_channel( '/login' )
-login.callback do |message|
+login.callback do |data|
   puts "someone send "
-  p message
+  p data
   puts 'on channel /login'
-  server.add_channel( "/from/#{message}" )
+  server.add_channel( "/from/#{data}" )
 end
 
 server.start

@@ -9,7 +9,7 @@
       dojo.require("dojox.cometd");
 			
       var comet = dojox.cometd;
-			comet.init("http://localhost:8990");
+			comet.init("http://<%= @ip %>:8990");
 			
 			var message = {
 				publish : function(msg) {
