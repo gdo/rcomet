@@ -1,14 +1,10 @@
-##Comet server with bayeux protocol for Manag
-
-##TODO Restreindre certain canaux à des utilisateurs authentifiés
-##TODO Faire les Spec
-
 require 'rubygems'
-require 'json'
-
-require 'rcomet/core_ext'
-require 'rcomet/constants'
-require 'rcomet/error'
-require 'rcomet/channel'
-require 'rcomet/user'
 require 'rcomet/server'
+
+module RComet
+  VERSION = '0.0.1'
+  
+  BAYEUX_VERSION   = '1.0'
+  JSONP_CALLBACK   = 'jsonpcallback'
+  CONNECTION_TYPES = %w[long-polling callback-polling]
+end

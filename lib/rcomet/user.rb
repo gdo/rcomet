@@ -1,60 +1,55 @@
 module RComet
-  class User #:nodoc:
+  class User
     attr_reader :id
-    attr_accessor :status
-    def initialize(server)
-      @status=:unconnected
-      str=''
+    attr_accessor :connected
+    
+    # Create a new Comet user
+    def initialize
+      @connected = false
+      @id = ''
       16.times do |i|
-        str << ?A+rand(50)
+        @id << ?A+rand(50)
       end
-      @id=str
-
-      @server=server
-      @channels=Hash.new
-      @mutex_network_info=Mutex.new
+      
+      @channels = Hash.new
+      @event_mutex = Mutex.new
+      @messages = []
     end
     
-    def set_network_info(response,http_request,socket)
-      @mutex_network_info.synchronize do
-        @response=response
-        @http_request=http_request
-        @socket=socket
+    def wait( messages ) #:nodoc:
+      @continue = true
+      @messages << messages
+      while @continue; end
+      
+      messages = @messages.clone
+      @messages = []
+      return messages
+    end
+    
+    def send( message ) #:nodoc:
+      if @connected == false
+        puts "Des données sont prêtes mais pas le user ##{@id}"
+        ## ADD TIMEOUT !
       end
+      
+      @messages << message
+      @continue = false
     end
-
-    def send_data(message)
-      @mutex_network_info.synchronize do
-        if @response and @http_request and @socket
-          @response << message
-          @server.send_response(@response,@http_request,@socket)
-          @response=@http_request=@socket=nil
-        else
-          puts "une donnée est prete mais pas le user"
-        end
-      end
+    
+    # Subscribe to a given channel
+    def subscribe( channel )
+      channel.add_user( self )
+      @channels[channel.path] = channel
     end
-
-    def have_channel?
-      return (not @channels.empty?)
-    end
-
-    def subscribe(channel)
-      channel.add_user(self)
-      @channels[channel.path]=channel
-    end
-
-    def unsubscribe(channel)
-      c=@channels.delete(channel)
+    
+    # Unsubscribe to a given channel
+    def unsubscribe( channel )
+      c = @channels.delete(channel)
       c.delete_user(self) if c
     end
     
-    def disconnect
-      @channels.each do |path,channel|
-        channel.delete_user(self)
-      end
-      @socket.close if @socket
-      @status=:unconnected
+    def has_channel? #:nodoc:
+      return( not @channels.empty? )
     end
   end
 end
