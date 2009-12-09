@@ -14,26 +14,26 @@ Bayeux Protocol : http://svn.cometd.org/trunk/bayeux/bayeux.html
 
   require 'rcomet'
 
-	# We create a new RComer server
-	server = RComet::Server.new( :host => '0.0.0.0', :port => 8990, :server => :mongrel, :mount => '/' ) {
-		# We create a new channel (/graph) with a callback to manipulate recieved data
-	  channel['/graph'].callback do |data|
-	    # Someone have send data on channel /graph
-			# We push the data to the same channel
-			# We don't need to do this... But it's an example
-	    channel['/graph'].data( data )
-	  end
-	}
-	
-	# Let's start the server
-	server.start
+  # We create a new RComer server
+  server = RComet::Server.new( :host => '0.0.0.0', :port => 8990, :server => :mongrel, :mount => '/' ) {
+    # We create a new channel (/graph) with a callback to manipulate recieved data
+    channel['/graph'].callback do |data|
+      # Someone have send data on channel /graph
+      # We push the data to the same channel
+      # We don't need to do this... But it's an example
+      channel['/graph'].data( data )
+    end
+  }
+  
+  # Let's start the server
+  server.start
 
-	# Then we start for a infinity loop
-	while true
-		# We push new data to the channel /graph every 5 second
-	  server.channel['/graph'].data( [rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10)] )
-	  sleep(5)
-	end
+  # Then we start for a infinity loop
+  while true
+    # We push new data to the channel /graph every 5 second
+    server.channel['/graph'].data( [rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10),rand(10)] )
+    sleep(5)
+  end
 
 See <tt>examples</tt>...
 
