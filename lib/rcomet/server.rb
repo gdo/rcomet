@@ -50,7 +50,6 @@ module RComet
     end
     
     def method_missing(method_name, *args, &block) #:nodoc:
-      puts "Called #{method_name} with args: #{args * ', '}" 
       @comet.send(method_name,*args, &block)
     end
   end

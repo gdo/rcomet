@@ -31,13 +31,17 @@ module RComet
     def call(env)
       request = Rack::Request.new(env)
       
-      messages = JSON.parse(request.params['message'])
-      jsonp    = request.params['jsonp'] || JSONP_CALLBACK
-      get      = request.get?
+      if request.params.empty?
+        [404, {'Content-Type' => 'text/html'}, ""]
+      else
+        messages = JSON.parse(request.params['message'])
+        jsonp    = request.params['jsonp'] || JSONP_CALLBACK
+        get      = request.get?
       
-      process( jsonp, messages, get )
+        process( jsonp, messages, get )
+      end
     end
-        
+    
     def channel
       @channels
     end
@@ -131,6 +135,33 @@ module RComet
     end
     
     def disconnect( message )
+      # Initialize response message
+      response = {
+        'channel'     => RComet::Channel::DISCONNECT,
+        'clientId'    => message['clientId']
+      }
+      response << { 'id' => message['id'] } if message.has_key?('id')
+      
+      # Get user for clientId
+      user = @users[message['clientId']]
+      if user
+        # Ok, disconnect user
+        user.connected = false
+        @users.delete( message['clientId'] )
+        
+        # Complete reponse
+        response << {
+          'successful'  => true
+        }
+      else
+        # User does nit exist!
+        response << {
+          'successful'  => false,
+          'error'       => "402:#{message['clientId']}:Unknown Client ID"
+        }
+      end
+      
+      return response
     end
     
     def subscribe( message )
@@ -246,6 +277,6 @@ module RComet
       end
       
       return response      
-    end
+    end    
   end
 end
