@@ -7,6 +7,7 @@
 
     <script language="JavaScript" type="text/javascript">
       dojo.require("dojox.cometd");
+			dojo.require("dojo.fx");
 			
       var comet = dojox.cometd;
 			comet.init("http://<%= @ip %>:8990");
@@ -16,27 +17,7 @@
 					current = dojo.byId("stream").innerHTML 
 					dojo.byId("stream").innerHTML = "<li><b>"+msg.data.username+"</b>: "+msg.data.message+"</li>"+current;
 				}
-			}
-			
-			var username = null;
-			function login( ) {
-				username = dojo.byId("username").value;
-				comet.publish( '/login', username );
-				
-				return( false );
-			}
-			
-			function follow() {
-				followee = dojo.byId("followee").value;
-				comet.subscribe( '/from/'+followee, message, "publish" );
-				
-				return( false );
-			}
-			
-			function send() {
-				message = dojo.byId("message").value;
-				comet.publish( '/from/'+username, { "username":username, "message":message } );
-			}
+			}			
     </script>
 
   </head>
@@ -45,14 +26,18 @@
 
 		  <h1><em>Soapbox</em> | a Twitter-style chat app</h1>
 
-		  <form id="enterUsername" onSubmit="return login();">
-		    <label for="username">Pick a username</label>
-		    <input type="text" name="username" id="username">
-		    <input type="submit" value="Go">
-		  </form>
+		  <!-- <form id="enterUsername" onSubmit="return login();"> -->
+			<div id="login">
+				<form id="enterUsername">
+		    	<label for="username">Pick a username</label>
+		    	<input type="text" name="username" id="username">
+		    	<input type="submit" value="Go">
+		  	</form>
+			</div>
 
 		  <div id="app">
-		    <form id="addFollowee" onSubmit="return follow();">
+		    <!-- <form id="addFollowee" onSubmit="return follow();"> -->
+				<form id="addFollowee">
 		      <label for="followee">Follow</label>
 		      <input type="text" name="followee" id="followee">
 		      <input type="submit" value="Go">
@@ -61,12 +46,47 @@
 		    <form id="postMessage">
 		      <label for="message">Post a message</label><br>
 		      <textarea name="message" id="message" rows="3" cols="40"></textarea>
-		      <input type="button" value="Go" onClick="javascript:send();">
+		      <!-- <input type="button" value="Go" onClick="javascript:send();"> -->
+					<input type="submit" value="Send">
 		    </form>
 
 		    <ul id="stream">
 		    </ul>
 		  </div>
 		</div>
+    <script language="JavaScript" type="text/javascript">
+			var username = null;
+			dojo.connect(dojo.byId("enterUsername"), "onsubmit", function(evt) {
+				evt.preventDefault();
+				dojo.stopEvent(evt);
+				username = dojo.byId("username").value;
+				comet.publish( '/login', username );
+				
+				dojo.fadeOut({node:dojo.byId("enterUsername")}).play( );
+				dojo.animateProperty({ 
+					node: dojo.byId("login"),
+					properties: { height: { end: 0 } } 
+				}).play( );
+				return false;
+			})
+			
+			var addFolloweeForm = dojo.byId("addFollowee");
+			dojo.connect(addFolloweeForm, "onsubmit", function(evt) {
+				evt.preventDefault();
+				dojo.stopEvent(evt);
+				followee = dojo.byId("followee").value;
+				comet.subscribe( '/from/'+followee, message, "publish" );
+				return false;
+			})
+			
+			var postMessageForm = dojo.byId("postMessage");
+			dojo.connect(postMessageForm, "onsubmit", function(evt) {
+				evt.preventDefault();
+				dojo.stopEvent(evt);
+				message = dojo.byId("message").value;
+				comet.publish( '/from/'+username, { "username":username, "message":message } );
+				return false;
+			})		
+		</script>
   </body>
 </html>

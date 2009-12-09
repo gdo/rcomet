@@ -11,6 +11,7 @@ begin
     gem.homepage = "http://github.com/glejeune/rcomet"
     gem.authors = ["Guillaume Dorchies", "Grégoire Lejeune"]
     gem.add_development_dependency "rspec", ">= 1.2.9"
+    gem.add_dependency('rack')
     gem.bindir = "bin"
     gem.executables = ["rcomet"]
     gem.rubyforge_project = 'rcomet'
