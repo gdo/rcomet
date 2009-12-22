@@ -1,0 +1,61 @@
+body {
+  background:   #bfbfbf;
+  margin:       0;
+  padding:      0;
+  font:         16px/1.5 Helvetica, Arial, sans-serif;
+  text-align:   center;
+}
+
+.container {
+  text-align:   left;
+  width:        400px;
+  margin:       40px auto;
+  padding:      24px;
+  border:       1px solid #3f3f3f;
+  background:   #FFF;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+.chat {
+  width:        800px;
+  margin:       40px auto;
+  padding:      5px;
+  border:       1px solid #3f3f3f;
+  background:   #fff;
+  text-align:   left;
+  
+}
+
+.room {
+  padding-left: 1%;
+  padding-bottom: 1px;
+  padding-right: 1%;
+  padding-top: 1px;
+  width:        65%;
+  border:       0px solid #000000;
+}
+.room ul {
+  border:       1px solid black;
+  height:       310px;
+  overflow:     auto;
+}
+.room form#message {
+  background:   #ABB;
+  padding:      3px;
+}
+
+.users {
+  position:     absolute;
+  top:          114px;
+  right:        12%;
+  padding:      1em;
+  width:        20%;
+}
+
+ul, li {
+  list-style:   none;
+  padding-left: 5px;
+}

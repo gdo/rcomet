@@ -4,7 +4,7 @@ module RComet
     attr_accessor :connected
     
     # Create a new Comet user
-    def initialize
+    def initialize(adapter)
       @connected = false
       @id = ''
       16.times do |i|
@@ -14,10 +14,11 @@ module RComet
       @channels = Hash.new
       @event_mutex = Mutex.new
       @messages = []
+      @adapter = adapter
     end
     
     def wait( messages ) #:nodoc:
-      @continue = true
+      @continue = @messages.empty?
       @messages << messages
       while @continue; end
       
@@ -28,8 +29,10 @@ module RComet
     
     def send( message ) #:nodoc:
       if @connected == false
-        puts "Des données sont prêtes mais pas le user ##{@id}"
         ## ADD TIMEOUT !
+        unless @adapter.timeout.nil?
+          @adapter.timeout.call(self)
+        end
       end
       
       @messages << message
@@ -46,6 +49,12 @@ module RComet
     def unsubscribe( channel )
       c = @channels.delete(channel)
       c.delete_user(self) if c
+    end
+    
+    def unsubscribe_all( )
+      @channels.each do |c|
+        unsubscribe(c)
+      end
     end
     
     def has_channel? #:nodoc:

@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>RComet demo: chat client</title>
+		<link rel="stylesheet" href="/static/style.css" type="text/css" media="screen">
+    <script language="JavaScript" type="text/javascript" src="/static/dojo/dojo/dojo.js" charset="utf-8" djConfig="parseOnLoad: true"></script>
+
+    <script language="JavaScript" type="text/javascript">
+      dojo.require("dojox.cometd");
+			dojo.require("dojo.fx");
+			
+      var comet = dojox.cometd;
+			comet.init("http://<%= @ip %>:8990");
+			
+			var message = {
+        _init : function() {
+          comet.subscribe("/message", message, "publish");
+          comet.subscribe("/users", message, "users");
+          comet.publish("/login", "<%= @username %>");
+        },
+        
+				publish : function(msg) {
+					current = dojo.byId("stream").innerHTML 
+					dojo.byId("stream").innerHTML = "<li><b>"+msg.data.username+"</b>: "+msg.data.message+"</li>"+current;
+				},
+				
+				users : function(msg) {
+				  dojo.byId("usersList").innerHTML = "";
+				  dojo.map(msg.data, function(el) {
+				    current = dojo.byId("usersList").innerHTML 
+            dojo.byId("usersList").innerHTML = "<li>"+el+"</li>"+current;
+				  });
+				}
+			}
+			dojo.addOnLoad(message, "_init");
+    </script>
+
+  </head>
+  <body>
+    <div class="chat">
+      <h1>RComet Chat Demo | <%= @username %></h1>
+      
+      <div class="room">
+        <ul id="stream">
+          <!-- messages -->
+        </ul>
+        <form id="message">
+          <label for="text">Message </label>
+          <input type="text" name="text" id="text" size="50">
+          <input type="submit" value="Send">
+        </form>
+      </div>
+      
+      <div class="users">
+        <label>Users :</label>
+        <ul id="usersList">
+          <!-- users list -->
+        </ul>
+      </div>
+    </div>
+
+
+    <script language="JavaScript" type="text/javascript">
+			var postMessageForm = dojo.byId("message");
+			dojo.connect(postMessageForm, "onsubmit", function(evt) {
+				evt.preventDefault();
+				dojo.stopEvent(evt);
+				message = dojo.byId("text").value;
+				comet.publish( '/message', { "username":"<%= @username %>", "message":message } );
+				dojo.byId("text").value = "";
+				return false;
+			})		
+		</script>
+  </body>
+</html>

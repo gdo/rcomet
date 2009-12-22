@@ -3,11 +3,11 @@ require 'rcomet'
 
 server = RComet::Server.new( :host => '0.0.0.0', :port => 8990, :server => :mongrel, :mount => '/' ) {
   channel['/graph'] = [1,1,2,2,3,3,4,4]
-  channel['/graph'].callback do |data|
+  channel['/graph'].callback do |message|
     puts "someone send "
-    p data
+    p message['data']
     puts 'on channel /graph'
-    server.channel['/graph'].data( data )
+    channel['/graph'].data( message['data'] )
   end
 }
 server.start

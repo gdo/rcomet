@@ -23,6 +23,7 @@ module RComet
       @options  = [app, options].grep(Hash).first
       @channels = RComet::ChannelSet.new
       @users    = Hash.new
+      @timeout  = nil
       
       instance_eval(&block) if block
       return @app  
@@ -44,6 +45,11 @@ module RComet
     
     def channel
       @channels
+    end
+    
+    def timeout( &block )
+      @handler = block if block_given?
+      @handler
     end
     
     def process( jsonp, messages, get )
@@ -83,7 +89,7 @@ module RComet
     
     def handshake( message )
       begin
-        user = User.new
+        user = User.new(self)
       end while @users.has_key?(user.id)
       @users[user.id] = user
       
@@ -270,7 +276,7 @@ module RComet
           if c.handler.nil?
             c.data( message['data'] )
           else
-            c.handler.call( message['data'] )
+            c.handler.call( message )
           end
         end
         return
