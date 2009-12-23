@@ -1,5 +1,5 @@
 $:.unshift( "../../lib" )
-require 'rcomet'
+require 'rcomet/server'
 
 server = RComet::Server.new( :host => '0.0.0.0', :port => 8990, :server => :mongrel, :mount => '/' ) {
   channel['/graph'] = [1,1,2,2,3,3,4,4]

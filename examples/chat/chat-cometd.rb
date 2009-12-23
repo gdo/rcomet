@@ -1,5 +1,5 @@
 $:.unshift("../../lib")
-require 'rcomet'
+require 'rcomet/server'
 
 users = {}
 

@@ -1,4 +1,4 @@
-class Hash
+class Hash #:nodoc:
   def <<( h )
     self.merge!( h )
   end

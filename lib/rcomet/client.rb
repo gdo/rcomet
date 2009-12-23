@@ -1,39 +1,17 @@
-# (The MIT License)
-# 
-# Copyright (c) 2009 Grégoire Lejeune
-# 
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# 'Software'), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-# 
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 require 'net/http'
 require 'uri'
 require 'rubygems'
 require 'json'
-require 'faye'
+require 'rcomet'
+require 'rcomet/channel'
 
-module Faye
+module RComet
   class Client    
     def initialize( uri_or_string )
       @uri = uri_or_string
       @uri = URI.parse(@uri) if @uri.class == String
       @clientId = nil
-      @interval = nil
+      # @interval = nil
       @connection = nil
       @subscriptions = {}
     end
@@ -52,9 +30,9 @@ module Faye
       @connection = Thread.new {
         faild = false
         while true
-          id = Faye.random(32)
+          id = RComet.random(32)
           message = {
-            "channel" => Faye::Channel::CONNECT,
+            "channel" => RComet::Channel::CONNECT,
             "clientId" => @clientId,
             "connectionType" => "long-polling",
             "id" => id
@@ -87,9 +65,9 @@ module Faye
       unless @connection.nil?
         @connection.kill 
         message = {
-          "channel" => Faye::Channel::DISCONNECT,
+          "channel" => RComet::Channel::DISCONNECT,
           "clientId" => @clientId,
-          "id" => Faye.random(32)
+          "id" => RComet.random(32)
         }
         r = send( message )
         ## TODO : Check response
@@ -116,10 +94,10 @@ module Faye
     #                * id                                         * id
     #                * authSuccessful
     def handshake
-      id = Faye.random(32)
+      id = RComet.random(32)
       message = {
-        "channel" => Faye::Channel::HANDSHAKE,
-        "version" => Faye::BAYEUX_VERSION,
+        "channel" => RComet::Channel::HANDSHAKE,
+        "version" => RComet::BAYEUX_VERSION,
         "supportedConnectionTypes" => [ "long-polling", "callback-polling" ],
         "id" => id
       }
@@ -127,7 +105,7 @@ module Faye
       response = send( message )[0]
       if response["successful"] and response["id"] == id
         @clientId = response["clientId"]
-        @interval = response["advice"]["interval"]
+        # @interval = response["advice"]["interval"]
       else
         raise
       end
@@ -140,14 +118,12 @@ module Faye
     #                * id                                 * error
     #                * ext                                * ext
     def publish( channel, data )
-      message = [
-        {
-          "channel" => channel,
-          "data" => data, 
-          "clientId" => @clientId,
-          "id" => Faye.random(32)
-        }
-      ]
+      message = {
+        "channel" => channel,
+        "data" => data, 
+        "clientId" => @clientId,
+        "id" => RComet.random(32)
+      }
       r = send(message)[0]
       ## TODO : Check response
     end
@@ -162,18 +138,14 @@ module Faye
     #                                                     * ext
     #                                                     * id
     #                                                     * timestamp
-    def subscribe( channels, &block )
-      channels = [channels] unless channels.class == Array
-      if block
-        channels.each do |c|
-          @subscriptions[c] = block
-        end
-      end
+    def subscribe( channel, &block )
+      @subscriptions[channel] = block if block_given?
+
       message = {
-        "channel" => Faye::Channel::SUBSCRIBE,
+        "channel" => RComet::Channel::SUBSCRIBE,
         "clientId" => @clientId,
-        "subscription" => channels,
-        "id" => Faye.random(32)
+        "subscription" => channel,
+        "id" => RComet.random(32)
       }
       
       r = send(message)
@@ -196,10 +168,10 @@ module Faye
         @subscriptions.delete(c)
       end
       message = {
-        "channel" => Faye::Channel::UNSUBSCRIBE,
+        "channel" => RComet::Channel::UNSUBSCRIBE,
         "clientId" => @clientId,
         "subscription" => channels,
-        "id" => Faye.random(32)
+        "id" => RComet.random(32)
       }
       
       r = send(message)
@@ -208,41 +180,9 @@ module Faye
     
     private
     def send( message )
-      res = Net::HTTP.post_form( @uri, { "message" => message.to_json } )
+      res = Net::HTTP.post_form( @uri, { "message" => [message].to_json } )
       return JSON.parse( res.body )
     end
     
   end
-end
-
-if $0 == __FILE__
-x = Faye::Client.new( 'http://localhost:3000/comet' )
-
-puts "-- handshake"
-x.handshake
-
-puts "-- subscriptions"
-x.subscribe( "/mentioning/daemon" )
-
-x.subscribe( "/from/greg" ) { |r|
-  puts "#{r["user"]} : #{r["message"]}"
-}
-
-puts "-- connect"
-x.connect
-
-msg = ""  
-while msg != "quit"
-  msg = $stdin.readline.chomp
-  unless msg == "quit"
-    channel = "/from/daemon"
-    data = { "user" => "daemon", "message" => msg }
-    r = x.publish( channel, data )
-    unless r["successful"]
-      puts "=> Message not send !"
-    end
-  end
-end
-
-x.disconnect
 end

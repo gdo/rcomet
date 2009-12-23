@@ -11,6 +11,7 @@
 require 'rack'
 require 'json'
 
+require 'rcomet'
 require 'rcomet/core_ext'
 require 'rcomet/server'
 require 'rcomet/channel'
@@ -38,7 +39,7 @@ module RComet
         messages = JSON.parse(request.params['message'])
         jsonp    = request.params['jsonp'] || JSONP_CALLBACK
         get      = request.get?
-      
+
         process( jsonp, messages, get )
       end
     end
@@ -270,7 +271,7 @@ module RComet
           'successful'  => true
         }
       end
-      
+            
       Thread.new do
         unless c.nil?
           if c.handler.nil?

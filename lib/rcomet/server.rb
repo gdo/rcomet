@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'rcomet/rack_adapter'
 require 'logger'
 

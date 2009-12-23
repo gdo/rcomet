@@ -6,10 +6,7 @@ module RComet
     # Create a new Comet user
     def initialize(adapter)
       @connected = false
-      @id = ''
-      16.times do |i|
-        @id << ?A+rand(50)
-      end
+      @id = RComet.random(64)
       
       @channels = Hash.new
       @event_mutex = Mutex.new

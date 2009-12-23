@@ -7,21 +7,23 @@ Bayeux Protocol : http://svn.cometd.org/trunk/bayeux/bayeux.html
 
 == FEATURES/PROBLEMS:
 
-* RComet does not work with Thin !
 * It was tested only with Dojo
+* Does not work with Thin :(
 
 == SYNOPSIS:
 
-  require 'rcomet'
+=== Server
+
+  require 'rcomet/server'
 
   # We create a new RComer server
   server = RComet::Server.new( :host => '0.0.0.0', :port => 8990, :server => :mongrel, :mount => '/' ) {
     # We create a new channel (/graph) with a callback to manipulate recieved data
-    channel['/graph'].callback do |data|
+    channel['/graph'].callback do |message|
       # Someone have send data on channel /graph
-      # We push the data to the same channel
+      # We push the data message to the same channel
       # We don't need to do this... But it's an example
-      channel['/graph'].data( data )
+      channel['/graph'].data( message['data'] )
     end
   }
   
@@ -35,7 +37,49 @@ Bayeux Protocol : http://svn.cometd.org/trunk/bayeux/bayeux.html
     sleep(5)
   end
 
-See <tt>examples</tt>...
+=== Client
+
+  require 'rcomet/client'
+  
+  # Initialisation
+  x = RComet::Client.new( 'http://localhost:8990/' )
+  
+  # Handshake
+  x.handshake
+  
+  # Publication
+  x.publish( '/login', "daemon" );
+  
+  # Subscriptions
+  x.subscribe( "/from/greg" ) { |r|
+    puts "#{r["username"]} : #{r["message"]}"
+  }
+  x.subscribe( "/from/daemon" ) { |r|
+    puts "#{r["username"]} : #{r["message"]}"
+  }
+  
+  # Connection
+  x.connect
+  
+  # Mainloop
+  msg = ""  
+  while msg != "quit"
+    msg = $stdin.readline.chomp
+    unless msg == "quit"
+      channel = "/from/daemon"
+      data = { "username" => "daemon", "message" => msg }
+      r = x.publish( channel, data )
+      unless r["successful"]
+        puts "=> Message not send !"
+      end
+    end
+  end
+  
+  x.disconnect
+
+=== More...
+
+See {examples}[http://github.com/glejeune/rcomet/tree/master/examples/]...
 
 == REQUIREMENTS:
 

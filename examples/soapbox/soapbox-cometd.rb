@@ -1,7 +1,7 @@
 $:.unshift( "../../lib" )
-require 'rcomet'
+require 'rcomet/server'
 
-RComet::Server.new( :host => '0.0.0.0', :port => 8990, :mount => '/', :server => :mongrel ) {
+RComet::Server.new( :host => '0.0.0.0', :port => 8990, :mount => '/', :server => :thin ) {
   channel['/login'].callback do |message|
     puts "someone send "
     p message['data']
