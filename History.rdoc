@@ -4,3 +4,7 @@
 
   * Birthday!
 
+=== 0.0.2 / 2010-01-04
+
+* add all the changes made by glejeune 
+

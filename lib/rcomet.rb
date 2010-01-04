@@ -1,5 +1,5 @@
 module RComet
-  VERSION = '0.0.1'
+  VERSION = '0.0.2'
   
   BAYEUX_VERSION   = '1.0'
   JSONP_CALLBACK   = 'jsonpcallback'
