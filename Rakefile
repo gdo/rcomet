@@ -9,7 +9,7 @@ begin
     gem.description = %Q{RComet implement the Bayeux protocole to allow you to create client and/or Comet's server.}
     gem.email = "guillaume.dorchies@gmail.com"
     gem.homepage = "http://github.com/glejeune/rcomet"
-    gem.authors = ["Guillaume Dorchies", "Grégoire Lejeune"]
+    gem.authors = ["Guillaume Dorchies", "Gr\303\251goire Lejeune"]
     gem.add_development_dependency "rspec", ">= 1.2.9"
     gem.add_dependency('rack')
     gem.bindir = "bin"
