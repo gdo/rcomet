@@ -8,7 +8,7 @@ module RComet
   def self.random(size) #:nodoc:
     id = ''
     size.times do |i|
-      id << ?A+rand(50)
+      id << ?A+rand(50).to_s
     end
     return id
   end
