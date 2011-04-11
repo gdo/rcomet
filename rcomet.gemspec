@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rcomet}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Guillaume Dorchies", "Gr\303\251goire Lejeune"]
-  s.date = %q{2009-12-23}
+  s.date = %q{2010-01-06}
   s.default_executable = %q{rcomet}
   s.description = %q{RComet implement the Bayeux protocole to allow you to create client and/or Comet's server.}
   s.email = %q{guillaume.dorchies@gmail.com}
@@ -48,6 +48,7 @@ Gem::Specification.new do |s|
      "lib/rcomet/rack_adapter.rb",
      "lib/rcomet/server.rb",
      "lib/rcomet/user.rb",
+     "rcomet.gemspec",
      "spec/rcomet_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb"
@@ -66,8 +67,8 @@ Gem::Specification.new do |s|
      "examples/chat/chat-cometd.rb",
      "examples/chat/chat.rb",
      "examples/soapbox/client.rb",
-     "examples/soapbox/soapbox-cometd.rb",
-     "examples/soapbox/soapbox.rb"
+     "examples/soapbox/soapbox.rb",
+     "examples/soapbox/soapbox-cometd.rb"
   ]
 
   if s.respond_to? :specification_version then
